@@ -1,0 +1,29 @@
+# The client's own spreadsheets. Never publish these.
+Ram Prasad Assets/
+
+# Dependencies and build output
+node_modules/
+dist/
+dist-ssr/
+*.local
+
+# Secrets and local environment
+.env
+.env.*
+!.env.example
+
+# Logs and OS cruft
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.suo
+*.sw?
