@@ -1,6 +1,7 @@
 import type { LedgerInput } from "../domain/coverage";
 import type {
   ClientRecord,
+  LeadRecord,
   LineRecord,
   OemRecord,
   PartRecord,
@@ -18,10 +19,11 @@ export interface Snapshot {
   readonly lines: readonly LineRecord[];
   readonly responses: readonly ResponseRecord[];
   readonly supplies: readonly SupplyRecord[];
+  readonly leads: readonly LeadRecord[];
 }
 
 export async function loadSnapshot(): Promise<Snapshot> {
-  const [clients, oems, parts, requirements, lines, responses, supplies] = await Promise.all([
+  const [clients, oems, parts, requirements, lines, responses, supplies, leads] = await Promise.all([
     db.clients.toArray(),
     db.oems.toArray(),
     db.parts.toArray(),
@@ -29,8 +31,9 @@ export async function loadSnapshot(): Promise<Snapshot> {
     db.lines.toArray(),
     db.responses.toArray(),
     db.supplies.toArray(),
+    db.leads.toArray(),
   ]);
-  return { clients, oems, parts, requirements, lines, responses, supplies };
+  return { clients, oems, parts, requirements, lines, responses, supplies, leads };
 }
 
 export function toLedger(snapshot: Snapshot): LedgerInput {

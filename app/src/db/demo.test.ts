@@ -2,7 +2,9 @@ import "fake-indexeddb/auto";
 
 import { beforeEach, describe, expect, test } from "vitest";
 
-import { oemAvailabilityForPart, uncoveredView } from "../domain/coverage";
+import { uncoveredView, oemAvailabilityForPart } from "../domain/coverage";
+import { todayLocalIso } from "../domain/dates";
+import { leadsDueOnOrBefore } from "../domain/leads";
 import { loadDemoData } from "./demo";
 import { resetDatabase } from "./gateway";
 import { loadSnapshot, toLedger } from "./snapshot";
@@ -24,6 +26,8 @@ describe("demo data", () => {
     expect(snapshot.requirements).toHaveLength(1);
     expect(snapshot.lines).toHaveLength(2);
     expect(snapshot.responses).toHaveLength(3);
+    expect(snapshot.leads).toHaveLength(3);
+    expect(leadsDueOnOrBefore(snapshot.leads, todayLocalIso())).toHaveLength(2);
 
     const view = uncoveredView(result.requirementId!, toLedger(snapshot));
     expect(view.totals.requiredQty).toBe(1500);

@@ -88,6 +88,15 @@ export const responseInput = z.object({
   note: z.string().trim().default(""),
 });
 
+export const leadInput = z.object({
+  name: z.string().trim().min(1, "a lead must have a name"),
+  source: z.enum(["call", "whatsapp", "referral"]),
+  stage: z.enum(["new", "contacted", "visited", "negotiation", "won", "lost"]),
+  followUpDate: dateString,
+  phone: z.string().trim().default(""),
+  notes: z.string().trim().default(""),
+});
+
 const metaFields = {
   id: z.string().min(1),
   createdAt: z.string().min(1),
@@ -103,6 +112,7 @@ export const requirementStored = requirementInput.extend(metaFields);
 export const lineStored = lineInput.extend(metaFields);
 export const supplyStored = supplyInput.extend(metaFields);
 export const responseStored = responseInput.extend(metaFields);
+export const leadStored = leadInput.extend(metaFields);
 
 export const auditStored = z.object({
   id: z.string().min(1),

@@ -126,10 +126,47 @@ export async function loadDemoData(actor: string): Promise<DemoResult> {
     actor,
   );
 
+  await save(
+    "leads",
+    {
+      name: "Demo Veer Manufacturing",
+      source: "referral",
+      stage: "contacted",
+      followUpDate: isoDate(0),
+      phone: "",
+      notes: "Due today",
+    },
+    actor,
+  );
+  await save(
+    "leads",
+    {
+      name: "Demo Kaveri Engineering",
+      source: "whatsapp",
+      stage: "negotiation",
+      followUpDate: isoDate(-3),
+      phone: "",
+      notes: "Overdue",
+    },
+    actor,
+  );
+  await save(
+    "leads",
+    {
+      name: "Demo Shakti Systems",
+      source: "call",
+      stage: "new",
+      followUpDate: isoDate(5),
+      phone: "",
+      notes: "",
+    },
+    actor,
+  );
+
   return {
     loaded: true,
     message:
-      "Demo data loaded: 2 agencies, 3 OEMs, 2 parts, 1 requirement with 2 line items. Line P-123 is covered 1,000 of 1,000; line P-345 shows 500 uncovered because the only response is an indication.",
+      "Demo data loaded: 2 agencies, 3 OEMs, 2 parts, 1 requirement with 2 line items, and 3 leads. Line P-123 is covered 1,000 of 1,000; line P-345 shows 500 uncovered because the only response is an indication. On the Leads tab, two leads are due today or overdue.",
     requirementId: requirement.id,
   };
 }

@@ -6,6 +6,7 @@ import type { AuditEntry } from "./entities";
 import { db } from "./schema";
 import {
   clientInput,
+  leadInput,
   lineInput,
   oemInput,
   partInput,
@@ -34,6 +35,7 @@ const inputSchemas = {
   lines: lineInput,
   supplies: supplyInput,
   responses: responseInput,
+  leads: leadInput,
 } as const;
 
 export type EntityName = keyof typeof inputSchemas;
@@ -46,6 +48,7 @@ const tables = {
   lines: db.lines,
   supplies: db.supplies,
   responses: db.responses,
+  leads: db.leads,
 } as const;
 
 let fallbackCounter = 0;
@@ -282,7 +285,7 @@ export async function listAudit(entityType: string, entityId: string): Promise<A
 export async function resetDatabase(): Promise<void> {
   await db.transaction(
     "rw",
-    [db.clients, db.oems, db.parts, db.requirements, db.lines, db.supplies, db.responses, db.audit],
+    [db.clients, db.oems, db.parts, db.requirements, db.lines, db.supplies, db.responses, db.leads, db.audit],
     async () => {
       await Promise.all([
         db.clients.clear(),
@@ -292,6 +295,7 @@ export async function resetDatabase(): Promise<void> {
         db.lines.clear(),
         db.supplies.clear(),
         db.responses.clear(),
+        db.leads.clear(),
         db.audit.clear(),
       ]);
     },

@@ -36,6 +36,7 @@ designed here.
 | RequirementLine | id, requirementId, partId, requiredQty, technicalSpec, requiredDeliveryDate | One part per requirement is the norm; 25-30 is the ceiling. |
 | OemSupply | id, oemId, partId, supplyQty | The OEM's stated total supply of a part. This is the pool that capacity is drawn from. |
 | SourcingResponse | id, lineId, oemId, qty, commitmentType, responseDate, note | `commitmentType` is `firm` or `indication`. The most consequential field in the schema. |
+| Lead | id, name, source, stage, followUpDate, phone, notes | Added 2026-10-02 alongside requirements, not replacing them. `source` is call, whatsapp or referral. `stage` is new, contacted, visited, negotiation, won or lost. |
 | Attachment | id, ownerType, ownerId, filename, mimeType, sizeBytes, blob, issueDate, expiryDate (nullable) | Phase one stores and returns files. Expiry is stored but not acted on until phase two. |
 | AuditEntry | id, entityType, entityId, action, actor, at, before, after | Append-only. |
 
@@ -121,6 +122,25 @@ Required 1,000 for part P1. `OemSupply` A/P1 = 1,000, B/P1 = 1,000.
 And the capacity case the client chose: with A/P1 supply 1,000 and a firm 700 already committed on another
 active requirement, a new requirement sees **300** available for A/P1, and a firm request for 400 more is
 refused with the reason.
+
+---
+
+## Leads (added 2026-10-02, alongside requirements)
+
+Leads are prospective business, tracked separately from the RFI/requirement record, which remains the
+central record for fulfilment. A lead may later produce a requirement, but it is not one, and nothing in
+the coverage rules changes.
+
+- `source` is one of `call`, `whatsapp`, `referral`. This is the lead's origin, and is deliberately a
+  different list from the enquiry-source values recorded in the client's own spec (GeM / client portal /
+  direct / OEM); the two describe different things and must not be merged.
+- `stage` is one of `new`, `contacted`, `visited`, `negotiation`, `won`, `lost`.
+- `followUpDate` is required on every lead, ISO `YYYY-MM-DD`.
+- A lead is **open** while its stage is `new`, `contacted`, `visited` or `negotiation`. `won` and `lost`
+  are closed, and a closed lead never appears in the due list.
+- The due list shows leads whose `followUpDate` is today or earlier, compared as ISO text, using the same
+  local-date rule that `src/domain/dates.ts` applies to requirement deadlines.
+- Storage rule `L1`: every lead has a name and a follow-up date; a lead without either saves nothing.
 
 ---
 

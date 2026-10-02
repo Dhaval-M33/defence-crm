@@ -318,3 +318,20 @@ Answerable in parallel, but needed before the relevant module is trusted:
     a rule, and "partly because it is never urgent" suggests no SLA exists to enforce yet.
 13. **What is the time budget, and who else will use this day to day?** Neither appears in the brief, and
     both shape what is achievable at all.
+
+---
+
+## Revision note (2026-10-02)
+
+A **leads** module was added at the client's request, **alongside** this brief rather than replacing it.
+
+- The RFI/requirement remains the central record for fulfilment, and every rule in `DATA-MODEL.md` is
+  unchanged. The coverage and capacity engine is untouched and still the main screen's purpose.
+- A lead carries a name, a source (`call`, `whatsapp`, `referral`), a stage (`new`, `contacted`, `visited`,
+  `negotiation`, `won`, `lost`) and a required follow-up date, with a due-today view for open leads whose
+  follow-up is today or already past.
+- This does not replace the requirement statuses in section 2, and the requirement submission-deadline due
+  view still exists under the Requirements tab.
+- The lead source list is deliberately separate from the enquiry-source values recorded in the client's own
+  specification (GeM / client portal / direct / OEM). The two describe different things and must not be
+  merged.

@@ -633,6 +633,88 @@ button,
   font-weight: 600;
 }
 
+/* ---------- view switch ---------- */
+
+.view-switch {
+  display: flex;
+  gap: 8px;
+  margin: 32px 0 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.view-switch button {
+  min-height: 44px;
+  padding: 0 18px;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  border-radius: 0;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.view-switch button:hover {
+  color: var(--ink);
+}
+
+.view-switch button.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+/* ---------- leads ---------- */
+
+.lead-list {
+  display: grid;
+  gap: 8px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.lead {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  align-items: center;
+  padding: 12px 16px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--accent);
+  border-radius: var(--radius-sm);
+}
+
+.lead.closed {
+  border-left-color: var(--line-strong);
+  opacity: 0.75;
+}
+
+.lead-name {
+  font-weight: 650;
+}
+
+.lead .stage-field {
+  margin-left: auto;
+  min-width: 10rem;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.pill.source {
+  background: var(--surface-2);
+  border: 1px solid var(--line-strong);
+  color: var(--muted);
+}
+
 /* ---------- narrow screens: one column, nothing sideways ---------- */
 
 @media (max-width: 720px) {
@@ -669,6 +751,11 @@ button,
   }
 
   .response-form button {
+    width: 100%;
+  }
+
+  .lead .stage-field {
+    margin-left: 0;
     width: 100%;
   }
 

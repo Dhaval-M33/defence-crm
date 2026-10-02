@@ -6,6 +6,7 @@ import { db } from "./schema";
 import {
   auditStored,
   clientStored,
+  leadStored,
   lineStored,
   oemStored,
   partStored,
@@ -36,6 +37,7 @@ const backupSchema = z.object({
     lines: z.array(lineStored),
     supplies: z.array(supplyStored),
     responses: z.array(responseStored),
+    leads: z.array(leadStored),
     audit: z.array(auditStored),
   }),
 });
@@ -47,17 +49,19 @@ export interface ImportResult {
 }
 
 async function readTables(): Promise<BackupTables> {
-  const [clients, oems, parts, requirements, lines, supplies, responses, audit] = await Promise.all([
-    db.clients.toArray(),
-    db.oems.toArray(),
-    db.parts.toArray(),
-    db.requirements.toArray(),
-    db.lines.toArray(),
-    db.supplies.toArray(),
-    db.responses.toArray(),
-    db.audit.toArray(),
-  ]);
-  return { clients, oems, parts, requirements, lines, supplies, responses, audit };
+  const [clients, oems, parts, requirements, lines, supplies, responses, leads, audit] =
+    await Promise.all([
+      db.clients.toArray(),
+      db.oems.toArray(),
+      db.parts.toArray(),
+      db.requirements.toArray(),
+      db.lines.toArray(),
+      db.supplies.toArray(),
+      db.responses.toArray(),
+      db.leads.toArray(),
+      db.audit.toArray(),
+    ]);
+  return { clients, oems, parts, requirements, lines, supplies, responses, leads, audit };
 }
 
 /** Everything needed to restore this database, as a single zip of `data.json`. */
@@ -118,6 +122,7 @@ export async function importBackup(bytes: Uint8Array): Promise<ImportResult> {
       db.lines,
       db.supplies,
       db.responses,
+      db.leads,
       db.audit,
     ],
     async () => {
@@ -128,6 +133,7 @@ export async function importBackup(bytes: Uint8Array): Promise<ImportResult> {
       await db.lines.bulkAdd(tables.lines);
       await db.supplies.bulkAdd(tables.supplies);
       await db.responses.bulkAdd(tables.responses);
+      await db.leads.bulkAdd(tables.leads);
       await db.audit.bulkAdd(tables.audit);
     },
   );
@@ -141,6 +147,7 @@ export async function importBackup(bytes: Uint8Array): Promise<ImportResult> {
       lines: tables.lines.length,
       supplies: tables.supplies.length,
       responses: tables.responses.length,
+      leads: tables.leads.length,
       audit: tables.audit.length,
     },
   };

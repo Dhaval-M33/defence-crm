@@ -3,6 +3,7 @@ import Dexie, { type Table } from "dexie";
 import type {
   AuditEntry,
   ClientRecord,
+  LeadRecord,
   LineRecord,
   OemRecord,
   PartRecord,
@@ -19,6 +20,7 @@ export class CrmDatabase extends Dexie {
   lines!: Table<LineRecord, string>;
   supplies!: Table<SupplyRecord, string>;
   responses!: Table<ResponseRecord, string>;
+  leads!: Table<LeadRecord, string>;
   audit!: Table<AuditEntry, string>;
 
   constructor(name = "defence-crm") {
@@ -32,6 +34,9 @@ export class CrmDatabase extends Dexie {
       supplies: "id, oemId, partId, [oemId+partId]",
       responses: "id, lineId, oemId, commitmentType",
       audit: "id, entityType, entityId, at, actor",
+    });
+    this.version(2).stores({
+      leads: "id, name, stage, source, followUpDate",
     });
   }
 }

@@ -8,10 +8,20 @@ import { loadDemoData } from "./db/demo";
 import { WriteRefused, resetDatabase, save, update } from "./db/gateway";
 import { todayLocalIso } from "./domain/dates";
 import { dueOnOrBefore, isOverdue } from "./domain/due";
+import {
+  isLeadOverdue,
+  isOpenLeadStage,
+  LEAD_SOURCE_LABELS,
+  LEAD_SOURCES,
+  LEAD_STAGES,
+  LEAD_STAGE_LABELS,
+  leadsDueOnOrBefore,
+} from "./domain/leads";
+import type { LeadSource, LeadStage } from "./domain/leads";
 import { QuantityInputError, parseQuantity } from "./domain/quantity";
 import { loadSnapshot, toLedger } from "./db/snapshot";
 import type { Snapshot } from "./db/snapshot";
-import type { RequirementRecord } from "./db/entities";
+import type { LeadRecord, RequirementRecord } from "./db/entities";
 
 const DEFAULT_ACTOR = "Ram Prasad";
 const STATUSES = ["received", "qualifying", "quoted", "submitted", "won", "lost", "cancelled"] as const;
@@ -48,11 +58,16 @@ function Picker(props: {
   value: string;
   onChange: (value: string) => void;
   options: Array<{ value: string; label: string }>;
+  name?: string;
 }) {
   return (
     <label className="field">
       <span>{props.label}</span>
-      <select value={props.value} onChange={(event) => props.onChange(event.target.value)}>
+      <select
+        name={props.name}
+        value={props.value}
+        onChange={(event) => props.onChange(event.target.value)}
+      >
         {props.options.map((option) => (
           <option key={option.value} value={option.value}>
             {option.label}
@@ -356,6 +371,138 @@ function ResponseForm({ lineId, snapshot, run }: { lineId: string; snapshot: Sna
   );
 }
 
+function StagePicker({ lead, run }: { lead: LeadRecord; run: Run }) {
+  return (
+    <label className="field stage-field">
+      <span>Stage</span>
+      <select
+        value={lead.stage}
+        onChange={(event) => {
+          void run(
+            () => update("leads", lead.id, { stage: event.target.value }, DEFAULT_ACTOR),
+            "Stage updated to " + LEAD_STAGE_LABELS[event.target.value as LeadStage] + ".",
+          );
+        }}
+      >
+        {LEAD_STAGES.map((stage) => (
+          <option key={stage} value={stage}>
+            {LEAD_STAGE_LABELS[stage]}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+function LeadForm({ run }: { run: Run }) {
+  const [name, setName] = useState("");
+  const [source, setSource] = useState<LeadSource>("call");
+  const [stage, setStage] = useState<LeadStage>("new");
+  const [followUpDate, setFollowUpDate] = useState(todayLocalIso());
+
+  return (
+    <Form
+      title="New lead"
+      submitLabel="Add lead"
+      onSubmit={(event) => {
+        const form = new FormData(event.currentTarget);
+        void run(
+          () =>
+            save(
+              "leads",
+              {
+                name: String(form.get("name") ?? "").trim(),
+                source: String(form.get("source") ?? "call"),
+                stage: String(form.get("stage") ?? "new"),
+                followUpDate: String(form.get("followUpDate") ?? ""),
+                phone: "",
+                notes: "",
+              },
+              DEFAULT_ACTOR,
+            ),
+          "Lead saved.",
+        ).then(() => setName(""));
+      }}
+    >
+      <Field label="Name" name="name" value={name} onChange={setName} />
+      <Picker
+        label="Source"
+        name="source"
+        value={source}
+        onChange={(value) => setSource(value as LeadSource)}
+        options={LEAD_SOURCES.map((value) => ({ value, label: LEAD_SOURCE_LABELS[value] }))}
+      />
+      <Picker
+        label="Stage"
+        name="stage"
+        value={stage}
+        onChange={(value) => setStage(value as LeadStage)}
+        options={LEAD_STAGES.map((value) => ({ value, label: LEAD_STAGE_LABELS[value] }))}
+      />
+      <Field
+        label="Follow-up date"
+        name="followUpDate"
+        value={followUpDate}
+        onChange={setFollowUpDate}
+        type="date"
+      />
+    </Form>
+  );
+}
+
+function LeadsView({ snapshot, run, today }: { snapshot: Snapshot; run: Run; today: string }) {
+  const due = leadsDueOnOrBefore(snapshot.leads, today);
+
+  return (
+    <>
+      <section className="section">
+        <h2>Due today or earlier</h2>
+        <p className="muted">Leads whose follow-up is today or already past. Today is {today}.</p>
+        {due.length === 0 ? (
+          <p className="muted">Nothing due today or earlier.</p>
+        ) : (
+          <ul className="lead-list">
+            {due.map((lead) => (
+              <li key={lead.id} className="lead">
+                <span className="lead-name">{lead.name}</span>
+                <span className="pill source">{LEAD_SOURCE_LABELS[lead.source]}</span>
+                <span className="muted small">
+                  {LEAD_STAGE_LABELS[lead.stage]} · follow up {lead.followUpDate}
+                </span>
+                <span className={isLeadOverdue(lead, today) ? "badge uncovered" : "badge covered"}>
+                  {isLeadOverdue(lead, today) ? "OVERDUE" : "DUE TODAY"}
+                </span>
+                <StagePicker lead={lead} run={run} />
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section className="section">
+        <h2>All leads ({snapshot.leads.length})</h2>
+        {snapshot.leads.length === 0 ? (
+          <p className="muted">None yet.</p>
+        ) : (
+          <ul className="lead-list">
+            {snapshot.leads.map((lead) => (
+              <li key={lead.id} className={isOpenLeadStage(lead.stage) ? "lead" : "lead closed"}>
+                <span className="lead-name">{lead.name}</span>
+                <span className="pill source">{LEAD_SOURCE_LABELS[lead.source]}</span>
+                <span className="muted small">follow up {lead.followUpDate}</span>
+                <StagePicker lead={lead} run={run} />
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className="form-row">
+          <LeadForm run={run} />
+        </div>
+      </section>
+    </>
+  );
+}
+
 function Totals({ view }: { view: UncoveredView }) {
   return (
     <dl className="totals">
@@ -501,6 +648,7 @@ export default function App() {
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [notice, setNotice] = useState<Notice | null>(null);
+  const [view, setView] = useState<"leads" | "requirements">("leads");
 
   const refresh = useCallback(async () => {
     setSnapshot(await loadSnapshot());
@@ -631,6 +779,27 @@ export default function App() {
         <p>Loading…</p>
       ) : (
         <>
+          <nav className="view-switch" aria-label="Views">
+            <button
+              type="button"
+              className={view === "leads" ? "active" : ""}
+              onClick={() => setView("leads")}
+            >
+              Leads
+            </button>
+            <button
+              type="button"
+              className={view === "requirements" ? "active" : ""}
+              onClick={() => setView("requirements")}
+            >
+              Requirements
+            </button>
+          </nav>
+
+          {view === "leads" ? (
+            <LeadsView snapshot={snapshot} run={run} today={today} />
+          ) : (
+            <>
           <section className="section">
             <h2>1. Masters</h2>
             <p className="muted">
@@ -775,6 +944,8 @@ export default function App() {
             <CoverageBoard requirement={selected} snapshot={snapshot} ledger={ledger} run={run} />
           ) : (
             <p className="muted">Add a requirement to see its coverage.</p>
+          )}
+            </>
           )}
         </>
       )}

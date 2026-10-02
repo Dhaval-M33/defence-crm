@@ -1,4 +1,5 @@
 import type { CommitmentType, RequirementStatus } from "../domain/coverage";
+import type { LeadSource, LeadStage } from "../domain/leads";
 
 export interface AuditFields {
   readonly createdAt: string;
@@ -73,6 +74,16 @@ export interface ResponseRecord extends AuditFields {
   readonly commitmentType: CommitmentType;
   readonly responseDate: string;
   readonly note: string;
+}
+
+export interface LeadRecord extends AuditFields {
+  readonly id: string;
+  readonly name: string;
+  readonly source: LeadSource;
+  readonly stage: LeadStage;
+  readonly followUpDate: string;
+  readonly phone: string;
+  readonly notes: string;
 }
 
 export interface AuditEntry {
